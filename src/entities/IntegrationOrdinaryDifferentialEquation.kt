@@ -48,7 +48,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
         }
 
         curX = C
-        h = (B-A)/10
+        h = (B-A)/20
         if (h<hMin)
             h=hMin
         if (C==B){
@@ -83,12 +83,12 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
     }
 
     private fun getNextX(){
-        if(h>0){
+        if(h>0.0){
             if (!(B-(curX+h) < hMin)) {
                 curX += h
             }
             else{
-                if (B-curX >= 2*h){
+                if (B-curX >= 2.0*h){
                     flagLastStep = true
                     curX = B-h
                 }
@@ -96,9 +96,9 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
                     flagEnd = true
                     curX = B
                 }
-                else if((B-curX > 1.5*h)&&(B-curX < 2*h)){
+                else if((B-curX > 1.5*h)&&(B-curX < 2.0*h)){
                     flagLastStep = true
-                    curX += (B - curX) / 2
+                    curX += (B - curX) / 2.0
                 }
             }
         }
@@ -107,7 +107,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
                 curX += h
             }
             else{
-                if (A-curX < 2*h){
+                if (A-curX < 2.0*h){
                     flagLastStep = true
                     curX = A-h
                 }
@@ -115,9 +115,9 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
                     flagEnd = true
                     curX = A
                 }
-                else if((A-curX <= 1.5*h)&&(A-curX >= 2*h)){
+                else if((A-curX <= 1.5*h)&&(A-curX >= 2.0*h)){
                     flagLastStep = true
-                    curX += (A - curX) / 2
+                    curX += (A - curX) / 2.0
                 }
             }
         }
@@ -131,33 +131,46 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
             val tmpX = curX
             getNextX()
             xCount+=1
-            k1 = h*calculateFunctionValue(C, yC)
-            k2 = h*calculateFunctionValue(C + 0.5*h, yC + 0.5*k1)
-            k3 = h*calculateFunctionValue(C + h, yC - k1 + 2.0*k2)
+            k1 = calculateFunctionValue(C, yC)
+            k1 *= h
+            k2 = calculateFunctionValue(C + 0.5*h, yC + 0.5*k1)
+            k2 *= h
+            k3 = calculateFunctionValue(C + h, yC - k1 + 2.0*k2)
+            k3 *= h
 
             //val acurY = yC + (1.0/6.0)*(k1 + 4.0*k2 +k3)
             val curY: Double = yC+ 0.5*(k1 + k3)
-            val curE: Double = (-1.0/3.0)*(k1 - 2*k2 + k3)
+            val curE: Double = (-1.0/3.0)*(k1 - 2.0*k2 + k3)
 
             if ((abs(curE)==0.0 || (abs(curE) < E/k)) && !isDivision) {
                 h *= 2.0
             }
             //else if((abs(lastNode.E) >= E/k) && (abs(lastNode.E) <= E)){}
-            if((abs(curE) > E) && h!=hMin && !(flagEnd || flagLastStep))
-            {
-                isDivision = true
-                curX = tmpX
-                h= (h/2.0).let { if(abs(h/2.0) >= abs(hMin)) it else hMin }
-                incorrectXCount+=1
+            if((abs(curE) > E) && !(flagEnd || flagLastStep)){
+
+                if( h!=hMin ) {
+                    isDivision = true
+                    curX = tmpX
+                    h= (h/2.0).let { if(abs(h/2.0) >= abs(hMin)) it else hMin }
+                }
+                else{
+                    incorrectXCount+=1
+                    flag = true
+                    addNode(curX, curY, curE)
+                }
             }
             else{
                 flag = true
-                val curNode = Node(curX, curY, curE)
-                list.add(curNode)
+                addNode(curX, curY, curE)
             }
 
 
         }while (!flag)
 
+    }
+
+    private fun addNode(x:Double, y:Double, E:Double){
+        val curNode = Node(x, y, E)
+        list.add(curNode)
     }
 }
