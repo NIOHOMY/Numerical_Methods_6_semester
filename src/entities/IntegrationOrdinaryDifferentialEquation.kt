@@ -1,0 +1,127 @@
+package entities
+
+import java.io.File
+import net.objecthunter.exp4j.ExpressionBuilder
+import java.io.PrintWriter
+import kotlin.math.abs
+
+class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
+    private var A: Double = 0.0
+    private var B: Double = 0.0
+    private var C: Double = 0.0
+    private var yC: Double = 0.0
+    private var hMin: Double = 0.1
+    private var E: Double = 0.0
+
+    private val function: (Double, Double) -> Double
+
+    private var k1: Double = 0.0
+    private var k2: Double = 0.0
+    private var k3: Double = 0.0
+    private var h: Double = 0.0
+    private var curX: Double = 0.0
+    private var list: MutableList<Node> = mutableListOf()
+    val k = 2*2*2
+
+    var flagEnd: Boolean = false
+    var flagLastStep: Boolean = false
+
+    init {
+        function = { x, y ->
+            val expression = fxy.replace("x", "$x").replace("y", "$y")
+            evaluateExpression(expression)
+        }
+        File(fileName).useLines { lines ->
+            val dataList = lines.toList()
+            val firstLineData = dataList[0].split(" ")
+            A = firstLineData[0].toDouble()
+            B = firstLineData[1].toDouble()
+            C = firstLineData[2].toDouble()
+            yC = firstLineData[3].toDouble()
+            val secondLineData = dataList[1].split(" ")
+            hMin = secondLineData[0].toDouble()
+            E = secondLineData[1].toDouble()
+        }
+
+        curX = A
+        h = (B-A)/10
+    }
+
+
+    fun evaluateExpression(expression: String): Double {
+        val result = ExpressionBuilder(expression).build().evaluate()
+        return result
+    }
+
+    private fun calculateFunctionValue(x: Double, y: Double): Double {
+        return function(x, y)
+    }
+
+    fun integrate(){
+        while (!flagEnd){
+            calculateNext()
+        }
+
+        val file = File("C:\\Users\\N1o\\0projects\\IntellijIdea\\kt\\Numerical_Methods_6_semester\\src\\res\\output.txt")
+        val printWriter = PrintWriter(file)
+        list.forEach { node ->
+            printWriter.println("x: ${node.x}, y: ${node.y}, E: ${String.format("%.1e", node.E)}")
+        }
+        printWriter.close()
+    }
+
+    private fun calculateNext(){
+
+        var flag: Boolean = false
+        var isDivision: Boolean = false
+        do {
+            val tmpX = curX
+            if (!(B-(curX+h) < hMin))
+            {
+                curX = curX+h
+            }
+            else{
+                if (B-curX >= 2*h){
+                    flagLastStep = true
+                    curX = B-h
+                }
+                else if((B-curX <= 1.5*h) || flagLastStep){
+                    flagEnd = true
+                    curX = B
+                }
+                else if((B-curX > 1.5*h)&&(B-curX < 2*h)){
+                    flagLastStep = true
+                    curX = curX + (B-curX)/2
+                }
+            }
+            k1 = h*calculateFunctionValue(C, yC)
+            k2 = h*calculateFunctionValue(C + 0.5*h, yC + 0.5*k1)
+            k3 = h*calculateFunctionValue(C + h, yC - k1 + 2*k2)
+
+            //val curY = yC+ (1/6)*(k1 + 4*k2 +k3)
+            val curY: Double = yC+ 0.5*(k1 + k3)
+            val curE: Double = (-1.0/3.0)*(k1 - 2*k2 + k3)
+
+
+            if ((abs(curE) < E/k) && !isDivision)
+            {
+                h = h*2
+            }
+            //else if((abs(lastNode.E) >= E/k) && (abs(lastNode.E) <= E)){}
+            if((abs(curE) > E) && (h/2 >= hMin) && !(flagEnd || flagLastStep))
+            {
+                isDivision = true
+                curX = tmpX
+                h=h/2
+            }
+            else{
+                flag = true
+                val curNode = Node(curX, curY, curE)
+                list.add(curNode)
+            }
+
+
+        }while (!flag)
+
+    }
+}
