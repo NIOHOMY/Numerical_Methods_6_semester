@@ -23,6 +23,10 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
     private var list: MutableList<Node> = mutableListOf()
     val k = 2*2*2
 
+    var incorrectXCount:Int = 0
+    var xCount:Int = 0
+    var hMinCount:Int = 0
+
     var flagEnd: Boolean = false
     var flagLastStep: Boolean = false
 
@@ -43,8 +47,14 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
             E = secondLineData[1].toDouble()
         }
 
-        curX = A
+        curX = C
         h = (B-A)/10
+        if (h<hMin)
+            h=hMin
+        if (C==B){
+            hMin *=-1
+            h*=-1
+        }
     }
 
 
@@ -58,6 +68,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
     }
 
     fun integrate(){
+
         while (!flagEnd){
             calculateNext()
         }
@@ -67,18 +78,14 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
         list.forEach { node ->
             printWriter.println("x: ${node.x}, y: ${node.y}, E: ${String.format("%.1e", node.E)}")
         }
+        printWriter.println("Ex: ${incorrectXCount}, hMin count: ${hMinCount}, X count: ${xCount}")
         printWriter.close()
     }
 
-    private fun calculateNext(){
-
-        var flag: Boolean = false
-        var isDivision: Boolean = false
-        do {
-            val tmpX = curX
-            if (!(B-(curX+h) < hMin))
-            {
-                curX = curX+h
+    private fun getNextX(){
+        if(h>0){
+            if (!(B-(curX+h) < hMin)) {
+                curX += h
             }
             else{
                 if (B-curX >= 2*h){
@@ -91,28 +98,57 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
                 }
                 else if((B-curX > 1.5*h)&&(B-curX < 2*h)){
                     flagLastStep = true
-                    curX = curX + (B-curX)/2
+                    curX += (B - curX) / 2
                 }
             }
+        }
+        else{
+            if (!(A-(curX+h) > hMin)) {
+                curX += h
+            }
+            else{
+                if (A-curX < 2*h){
+                    flagLastStep = true
+                    curX = A-h
+                }
+                else if((A-curX > 1.5*h) || flagLastStep){
+                    flagEnd = true
+                    curX = A
+                }
+                else if((A-curX <= 1.5*h)&&(A-curX >= 2*h)){
+                    flagLastStep = true
+                    curX += (A - curX) / 2
+                }
+            }
+        }
+    }
+    private fun calculateNext(){
+
+        var flag: Boolean = false
+        var isDivision: Boolean = false
+        do {
+            hMinCount += (1).let { if(h==hMin) it else 0 }
+            val tmpX = curX
+            getNextX()
+            xCount+=1
             k1 = h*calculateFunctionValue(C, yC)
             k2 = h*calculateFunctionValue(C + 0.5*h, yC + 0.5*k1)
-            k3 = h*calculateFunctionValue(C + h, yC - k1 + 2*k2)
+            k3 = h*calculateFunctionValue(C + h, yC - k1 + 2.0*k2)
 
-            //val curY = yC+ (1/6)*(k1 + 4*k2 +k3)
+            //val acurY = yC + (1.0/6.0)*(k1 + 4.0*k2 +k3)
             val curY: Double = yC+ 0.5*(k1 + k3)
             val curE: Double = (-1.0/3.0)*(k1 - 2*k2 + k3)
 
-
-            if ((abs(curE) < E/k) && !isDivision)
-            {
-                h = h*2
+            if ((abs(curE)==0.0 || (abs(curE) < E/k)) && !isDivision) {
+                h *= 2.0
             }
             //else if((abs(lastNode.E) >= E/k) && (abs(lastNode.E) <= E)){}
-            if((abs(curE) > E) && (h/2 >= hMin) && !(flagEnd || flagLastStep))
+            if((abs(curE) > E) && h!=hMin && !(flagEnd || flagLastStep))
             {
                 isDivision = true
                 curX = tmpX
-                h=h/2
+                h= (h/2.0).let { if(abs(h/2.0) >= abs(hMin)) it else hMin }
+                incorrectXCount+=1
             }
             else{
                 flag = true
