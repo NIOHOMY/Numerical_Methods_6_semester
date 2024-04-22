@@ -2,25 +2,27 @@ package entities
 
 import java.io.File
 import net.objecthunter.exp4j.ExpressionBuilder
+import java.io.FileWriter
 import java.io.PrintWriter
 import kotlin.math.abs
 
 class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
+    private var filename: String = ""
     private var A: Double = 0.0
     private var B: Double = 0.0
     private var C: Double = 0.0
     private var yC: Double = 0.0
-    private var hMin: Double = 0.1
+    private var hMin: Double = 0.0
     private var E: Double = 0.0
 
     private val function: (Double, Double) -> Double
 
-    private var k1: Double = 0.0
-    private var k2: Double = 0.0
-    private var k3: Double = 0.0
+    private var k1_y: Double = 0.0
+    private var k2_y: Double = 0.0
+    private var k2_E: Double = 0.0
+    private var k3_E: Double = 0.0
     private var h: Double = 0.0
     private var curX: Double = 0.0
-    private var list: MutableList<Node> = mutableListOf()
     val k = 2*2*2
 
     var incorrectXCount:Int = 0
@@ -31,6 +33,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
     var flagLastStep: Boolean = false
 
     init {
+        filename = "C:\\Users\\N1o\\0projects\\IntellijIdea\\kt\\Numerical_Methods_6_semester\\src\\res\\output.txt"
         function = { x, y ->
             val expression = fxy.replace("x", "$x").replace("y", "$y")
             evaluateExpression(expression)
@@ -48,7 +51,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
         }
 
         curX = C
-        h = (B-A)/20
+        h = (B-A)/100.0
         if (h<hMin)
             h=hMin
         if (C==B){
@@ -69,17 +72,17 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
 
     fun integrate(){
 
+        val file = File(filename)
+        val printWriter = PrintWriter(file)
+        printWriter.close()
         while (!flagEnd){
             calculateNext()
         }
 
-        val file = File("C:\\Users\\N1o\\0projects\\IntellijIdea\\kt\\Numerical_Methods_6_semester\\src\\res\\output.txt")
-        val printWriter = PrintWriter(file)
-        list.forEach { node ->
-            printWriter.println("x: ${node.x}, y: ${node.y}, E: ${String.format("%.1e", node.E)}")
-        }
-        printWriter.println("Ex: ${incorrectXCount}, hMin count: ${hMinCount}, X count: ${xCount}")
-        printWriter.close()
+        val printWriterF = PrintWriter(FileWriter(file, true))
+        printWriterF.println("Ex: ${incorrectXCount}, hMin count: ${hMinCount}, X count: ${xCount}")
+        printWriterF.close()
+
     }
 
     private fun getNextX(){
@@ -131,16 +134,15 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
             val tmpX = curX
             getNextX()
             xCount+=1
-            k1 = calculateFunctionValue(C, yC)
-            k1 *= h
-            k2 = calculateFunctionValue(C + 0.5*h, yC + 0.5*k1)
-            k2 *= h
-            k3 = calculateFunctionValue(C + h, yC - k1 + 2.0*k2)
-            k3 *= h
+            k1_y = h*calculateFunctionValue(C, yC)
+            k2_y = h*calculateFunctionValue(C + h, yC + k1_y)
 
-            //val acurY = yC + (1.0/6.0)*(k1 + 4.0*k2 +k3)
-            val curY: Double = yC+ 0.5*(k1 + k3)
-            val curE: Double = (-1.0/3.0)*(k1 - 2.0*k2 + k3)
+            k2_E = h*calculateFunctionValue(C + 0.5*h, yC + 0.5*k1_y)
+            k3_E = h*calculateFunctionValue(C + h, yC - k1_y + 2.0*k2_E)
+
+            val acurY = yC + (1.0/6.0)*(k1_y + 4.0*k2_E +k3_E)
+            val curY: Double = yC+ 0.5*(k1_y + k2_y)
+            val curE: Double = acurY-curY//(-1.0/3.0)*(k1_y - 2.0*k2_E + k3_E)
 
             if ((abs(curE)==0.0 || (abs(curE) < E/k)) && !isDivision) {
                 h *= 2.0
@@ -170,7 +172,13 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
     }
 
     private fun addNode(x:Double, y:Double, E:Double){
-        val curNode = Node(x, y, E)
-        list.add(curNode)
+        val file = File(filename)
+        val printWriter = PrintWriter(FileWriter(file, true))
+
+        printWriter.println("x: ${x}, y: ${y}, E: ${String.format("%.1e", E)}")
+
+        printWriter.close()
+        yC = y
+        C = x
     }
 }
