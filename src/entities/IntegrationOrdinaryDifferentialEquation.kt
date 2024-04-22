@@ -7,7 +7,7 @@ import java.io.PrintWriter
 import kotlin.math.abs
 
 class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
-    private var filename: String = ""
+    private var fileNameOut: String = ""
     private var A: Double = 0.0
     private var B: Double = 0.0
     private var C: Double = 0.0
@@ -33,7 +33,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
     var flagLastStep: Boolean = false
 
     init {
-        filename = "C:\\Users\\N1o\\0projects\\IntellijIdea\\kt\\Numerical_Methods_6_semester\\src\\res\\output.txt"
+        fileNameOut = "C:\\Users\\N1o\\0projects\\IntellijIdea\\kt\\Numerical_Methods_6_semester\\src\\res\\output.txt"
         function = { x, y ->
             val expression = fxy.replace("x", "$x").replace("y", "$y")
             evaluateExpression(expression)
@@ -51,7 +51,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
         }
 
         curX = C
-        h = (B-A)/100.0
+        h = (B-A)/1000.0
         if (h<hMin)
             h=hMin
         if (C==B){
@@ -72,7 +72,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
 
     fun integrate(){
 
-        val file = File(filename)
+        val file = File(fileNameOut)
         val printWriter = PrintWriter(file)
         printWriter.close()
         while (!flagEnd){
@@ -91,6 +91,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
                 curX += h
             }
             else{
+                val tmpX=curX
                 if (B-curX >= 2.0*h){
                     flagLastStep = true
                     curX = B-h
@@ -103,6 +104,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
                     flagLastStep = true
                     curX += (B - curX) / 2.0
                 }
+                h = curX-tmpX
             }
         }
         else{
@@ -110,6 +112,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
                 curX += h
             }
             else{
+                val tmpX=curX
                 if (A-curX < 2.0*h){
                     flagLastStep = true
                     curX = A-h
@@ -122,6 +125,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
                     flagLastStep = true
                     curX += (A - curX) / 2.0
                 }
+                h = curX-tmpX
             }
         }
     }
@@ -133,6 +137,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
             hMinCount += (1).let { if(h==hMin) it else 0 }
             val tmpX = curX
             getNextX()
+            val o = curX
             xCount+=1
             k1_y = h*calculateFunctionValue(C, yC)
             k2_y = h*calculateFunctionValue(C + h, yC + k1_y)
@@ -172,7 +177,7 @@ class IntegrationOrdinaryDifferentialEquation(fxy: String, fileName: String) {
     }
 
     private fun addNode(x:Double, y:Double, E:Double){
-        val file = File(filename)
+        val file = File(fileNameOut)
         val printWriter = PrintWriter(FileWriter(file, true))
 
         printWriter.println("x: ${x}, y: ${y}, E: ${String.format("%.1e", E)}")
