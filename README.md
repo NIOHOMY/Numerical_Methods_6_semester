@@ -14,7 +14,7 @@
 Решение задачи Коши с заданной точностью с автоматическим выбором максимальной длины шага. <br/>
 Зная диф. ур. и начальное условие можно получить все значения функции.
 
-[Перейти к лаболаторной 1](https://github.com/NIOHOMY/Numerical_Methods_6_semester/tree/lab2) <br/>
+[Перейти к лаболаторной 2](https://github.com/NIOHOMY/Numerical_Methods_6_semester/tree/lab2) <br/>
 [Посмотреть отчёт](https://github.com/NIOHOMY/Numerical_Methods_6_semester/blob/master/otchyot_3_kurs_62_gruppa_1_podgruppa_PakhomovaPV-2.pdf)
 ##
 
