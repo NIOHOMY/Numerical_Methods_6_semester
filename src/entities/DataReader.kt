@@ -8,9 +8,12 @@ class DataReader(fileName: String) {
     init {
         val file = File(fileName)
         var lineCount = 0
-        var a: Double = 0.0
-        var b: Double = 0.0
-        var y: Double = 0.0
+        var a1: Double = 0.0
+        var b1: Double = 0.0
+        var y1: Double = 0.0
+        var a2: Double = 0.0
+        var b2: Double = 0.0
+        var y2: Double = 0.0
         var A: Double = 0.0
         var B: Double = 0.0
         var N: Int = 0
@@ -19,9 +22,12 @@ class DataReader(fileName: String) {
             when (lineCount) {
                 0 -> {
                     val values = line.trim().split(" ")
-                    a = values[0].toDouble()
-                    b = values[1].toDouble()
-                    y = values[2].toDouble()
+                    a1 = values[0].toDouble()
+                    b1 = values[1].toDouble()
+                    y1 = values[2].toDouble()
+                    a2 = values[3].toDouble()
+                    b2 = values[4].toDouble()
+                    y2 = values[5].toDouble()
                 }
                 1 -> {
                     val values = line.trim().split(" ")
@@ -39,9 +45,12 @@ class DataReader(fileName: String) {
             lineCount++
         }
         data = DataModel(
-            a = a,
-            b = b,
-            y = y,
+            a1 = a1,
+            a2 = a2,
+            b1 = b1,
+            b2 = b2,
+            y1 = y1,
+            y2 = y2,
             A = A,
             B = B,
             N = N,
