@@ -3,7 +3,7 @@ import java.io.File
 
 class DataReader(fileName: String) {
 
-    private lateinit var data: DataModel
+    private var data: DataModel
 
     init {
         val file = File(fileName)
@@ -17,7 +17,7 @@ class DataReader(fileName: String) {
         var A: Double = 0.0
         var B: Double = 0.0
         var N: Int = 0
-        var nodeValues: MutableList<Double> = mutableListOf()
+        val nodeValues: MutableList<Double> = mutableListOf()
         file.forEachLine { line ->
             when (lineCount) {
                 0 -> {
@@ -38,7 +38,8 @@ class DataReader(fileName: String) {
                 2 -> {
                     val values = line.trim().split(" ")
                     for (i in 0 until N) {
-                        nodeValues.add(values[i].substringAfter(",").substringBefore(")").toDouble())
+                        val xy = values[i].substringAfter("(").substringBefore(")").split(",")
+                        nodeValues.add(xy[1].toDouble())
                     }
                 }
             }
@@ -54,6 +55,7 @@ class DataReader(fileName: String) {
             A = A,
             B = B,
             N = N,
+            nodeValues = nodeValues,
         )
     }
 

@@ -37,9 +37,9 @@ class Solver(
          */
         var i=0
         while (i<data.N){
-            val diff = if (aValues[i] != 0.0){-1*uValues[i]/aValues[i]}else{1.0}
+            val diff = if (aValues[i] != 0.0){-1.0*uValues[i]/aValues[i]}else{1.0}
 
-            val y = ( wValues[i] - ( yValues[i]*diff ) )/( -1*vValues[i] -( -1*bValues[i] * diff ) )
+            val y = ( wValues[i] + ( yValues[i]*diff ) )/( -1.0*vValues[i] +( -1.0*bValues[i] * diff ) )
             val yi = ( wValues[i] + vValues[i] * y )/uValues[i]
 
             writeToOut(
@@ -47,18 +47,19 @@ class Solver(
                 y,
                 yi,
             )
+            ++i
         }
     }
 
 
     fun solveFirstSystem(){
-        var u0 = data.a1
+        val u0 = data.a1
         val v0 = -1*data.b1
         val w0 = data.y1
 
-        val ui = "($p)*$u0+$v0"
-        val vi = "($q)*$u0"
-        val wi = "($f)*$u0"
+        val ui = "($p)*($u0)+($v0)"
+        val vi = "($q)*($u0)"
+        val wi = "($f)*($u0)"
 
         uValues = getFValues(u0, ui)
         vValues = getFValues(v0, vi)
@@ -67,13 +68,13 @@ class Solver(
     }
 
     fun solveSecondSystem(){
-        var a0 = data.a2
+        val a0 = data.a2
         val b0 = -1*data.b2
         val y0 = data.y2
 
-        val ai = "($p)*$a0+$b0"
-        val bi = "($q)*$a0"
-        val yi = "($f)*$a0"
+        val ai = "($p)*($a0)+($b0)"
+        val bi = "($q)*($a0)"
+        val yi = "($f)*($a0)"
 
         aValues = getFValues(a0, ai)
         bValues = getFValues(b0, bi)
@@ -84,7 +85,7 @@ class Solver(
         var u0 = _f0
         val fValues: MutableList<Double> = mutableListOf()
         fValues.add(u0)
-        val i=1
+        var i=1
         while(i<data.N){
 
             val solver: IntegrationOrdinaryDifferentialEquation =
@@ -115,6 +116,8 @@ class Solver(
             }
 
             fValues.add(u0)
+
+            ++i
         }
         return fValues
     }

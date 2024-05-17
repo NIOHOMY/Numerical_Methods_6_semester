@@ -15,7 +15,7 @@ class IntegrationOrdinaryDifferentialEquation(
     var hMin: Double,
     var E: Double
 ) {
-    var fileNameOut: String = ""
+    var fileNameOut: String = " "
 
     private val function: (Double, Double) -> Double
 
