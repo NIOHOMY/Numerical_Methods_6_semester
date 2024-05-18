@@ -13,12 +13,12 @@ class Solver(
 
     private val _E=0.0000000000000001
 
-    var uValues: MutableList<Double> = mutableListOf()
-    var vValues: MutableList<Double> = mutableListOf()
-    var wValues: MutableList<Double> = mutableListOf()
-    var aValues: MutableList<Double> = mutableListOf()
-    var bValues: MutableList<Double> = mutableListOf()
-    var yValues: MutableList<Double> = mutableListOf()
+    private var uValues: MutableList<Double> = mutableListOf()
+    private var vValues: MutableList<Double> = mutableListOf()
+    private var wValues: MutableList<Double> = mutableListOf()
+    private var aValues: MutableList<Double> = mutableListOf()
+    private var bValues: MutableList<Double> = mutableListOf()
+    private var yValues: MutableList<Double> = mutableListOf()
 
     val fileNameOut: String = "C:\\Users\\N1o\\0projects\\IntellijIdea\\kt\\Numerical_Methods_6_semester\\src\\res\\output2.txt"
 
@@ -31,21 +31,51 @@ class Solver(
         solveUVWABYSystem()
     }
 
+    fun solveEquationSystemUVWABY(
+        u: Double,
+        v: Double,
+        w: Double,
+        a: Double,
+        b: Double,
+        y: Double
+    ): Pair<Double, Double>? {
+
+        println("u: ${u}, v: ${v}, w': ${w}")
+        println("a: ${a}, b: ${b}, y': ${y}")
+        println("--------------------------")
+        fun det(
+            p11: Double, p12: Double,
+            p21: Double, p22: Double
+        ) = p11 * p22 - p12 * p21
+
+        val D = det(u, v, a, b)
+        val D1 = det(w, v, y, b)
+        val D2 = det(u, w, a, y)
+
+        if (D == 0.0) {
+            return null
+        }
+
+        val x1 = D1 / D
+        val x2 = D2 / D
+
+        return Pair(x1, x2)
+    }
+
     fun solveUVWABYSystem(){
-        /*
-        TODO сделать норм решение
-         */
         var i=0
         while (i<data.N){
-            val diff = if (aValues[i] != 0.0){-1.0*uValues[i]/aValues[i]}else{1.0}
 
-            val y = ( wValues[i] + ( yValues[i]*diff ) )/( -1.0*vValues[i] +( -1.0*bValues[i] * diff ) )
-            val yi = ( wValues[i] + vValues[i] * y )/uValues[i]
+            val solution = solveEquationSystemUVWABY(
+                u = uValues[i], v = -1*vValues[i], w = wValues[i],
+                a = aValues[i], b = -1*bValues[i], y = yValues[i],
+            )
 
+            if (solution != null)
             writeToOut(
                 data.nodeValues[i],
-                y,
-                yi,
+                solution.second,
+                solution.first,
             )
             ++i
         }
@@ -57,13 +87,20 @@ class Solver(
         val v0 = -1*data.b1
         val w0 = data.y1
 
-        val ui = "($p)*($u0)+($v0)"
-        val vi = "($q)*($u0)"
-        val wi = "($f)*($u0)"
+        uValues.add(u0)
+        vValues.add(v0)
+        wValues.add(w0)
 
-        uValues = getFValues(u0, ui)
-        vValues = getFValues(v0, vi)
-        wValues = getFValues(w0, wi)
+        for (i in 1 until data.N)
+        {
+            val ui = "($p)*(${uValues[i-1]})+(${vValues[i-1]})"
+            val vi = "($q)*(${uValues[i-1]})"
+            val wi = "($f)*(${uValues[i-1]})"
+
+            uValues.add(getFValues(uValues[i-1], ui, i))
+            vValues.add(getFValues(vValues[i-1], vi, i))
+            wValues.add(getFValues(wValues[i-1], wi, i))
+        }
 
     }
 
@@ -72,54 +109,71 @@ class Solver(
         val b0 = -1*data.b2
         val y0 = data.y2
 
-        val ai = "($p)*($a0)+($b0)"
-        val bi = "($q)*($a0)"
-        val yi = "($f)*($a0)"
+        aValues.add(a0)
+        bValues.add(b0)
+        yValues.add(y0)
 
-        aValues = getFValues(a0, ai)
-        bValues = getFValues(b0, bi)
-        yValues = getFValues(y0, yi)
+        for (i in 1 until data.N)
+        {
+            val ai = "($p)*(${aValues[i-1]})+(${bValues[i-1]})"
+            val bi = "($q)*(${aValues[i-1]})"
+            val yi = "($f)*(${aValues[i-1]})"
+
+            val index = data.N-1-i
+            aValues.add(getFValues(aValues[i-1], ai, index, true))
+            bValues.add(getFValues(bValues[i-1], bi, index, true))
+            yValues.add(getFValues(yValues[i-1], yi, index, true))
+        }
+        aValues.reverse()
+        bValues.reverse()
+        yValues.reverse()
+
     }
 
-    fun getFValues(_f0: Double, fi: String):MutableList<Double>{
+    fun getFValues(_f0: Double, fi: String, i: Int, isBack: Boolean = false): Double{
         var u0 = _f0
-        val fValues: MutableList<Double> = mutableListOf()
-        fValues.add(u0)
-        var i=1
-        while(i<data.N){
 
-            val solver: IntegrationOrdinaryDifferentialEquation =
-                IntegrationOrdinaryDifferentialEquation(
-                    fxy=fi,
-                    A=data.nodeValues[i-1],
-                    B=data.nodeValues[i],
-                    C=data.nodeValues[i-1],
-                    yC= u0,
-                    E= _E,
-                    hMin = _E
-                )
+        var A = 0.0
+        var B = 0.0
+        var C = 0.0
 
-            solver.integrate()
-
-            val file = File(solver.fileNameOut)
-            val lines = file.readLines()
-
-            if (lines.size >= 2) { // Проверяем, что в файле есть хотя бы две строки
-                val preLastLine = lines[lines.size - 2] // Получаем предпоследнюю строку
-                val yValue = preLastLine.split(",")[1].trim().substringAfter("y:").toDouble()
-
-                u0 = yValue
-                println(yValue) // Вывод значения y в формате Double
-            } else {
-                u0 = 0.0
-                println("Файл содержит недостаточно строк")
-            }
-
-            fValues.add(u0)
-
-            ++i
+        if (!isBack){
+            A = data.nodeValues[i-1]
+            B = data.nodeValues[i]
+            C = data.nodeValues[i-1]
         }
-        return fValues
+        else{
+            A=data.nodeValues[i+1]
+            B=data.nodeValues[i]
+            C=data.nodeValues[i+1]
+        }
+        val solver: IntegrationOrdinaryDifferentialEquation =
+            IntegrationOrdinaryDifferentialEquation(
+                fxy=fi,
+                A=A,
+                B=B,
+                C=C,
+                yC= u0,
+                E= _E,
+                hMin = _E
+            )
+        solver.integrate()
+
+        val file = File(solver.fileNameOut)
+        val lines = file.readLines()
+
+        if (lines.size >= 2) { // Проверяем, что в файле есть хотя бы две строки
+            val preLastLine = lines[lines.size - 2] // Получаем предпоследнюю строку
+            val yValue = preLastLine.split(",")[1].trim().substringAfter("y:").toDouble()
+
+            u0 = yValue
+            println(yValue)
+        } else {
+            u0 = 0.0
+            println("Файл содержит недостаточно строк")
+        }
+
+        return u0
     }
 
     private fun writeToOut(x:Double, y:Double, yii:Double){
