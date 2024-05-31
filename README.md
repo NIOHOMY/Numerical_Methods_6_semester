@@ -18,3 +18,11 @@
 [Посмотреть отчёт](https://github.com/NIOHOMY/Numerical_Methods_6_semester/blob/master/otchyot_3_kurs_62_gruppa_1_podgruppa_PakhomovaPV-2.pdf)
 ##
 
+<h4>3</h4>
+
+Решение линейной краевой задачи для дифференциального уравнения второго порядка <br/>
+методом универсальной дифференциальной прогонки.
+
+[Перейти к лаболаторной 3](https://github.com/NIOHOMY/Numerical_Methods_6_semester/tree/lab3) <br/>
+[Посмотреть отчёт](https://github.com/NIOHOMY/Numerical_Methods_6_semester/blob/master/otchyot_3_kurs_62_gruppa_1_podgruppa_PakhomovaPV-3.pdf)
+##
