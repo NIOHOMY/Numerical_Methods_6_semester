@@ -1,6 +1,6 @@
 ## <h4> Интерполирование функции с помощью многочленов Эрмита по m точкам, в которых заданы значения функции и производных. </h4>
 
-[посмотреть полный отчёт](https://github.com/NIOHOMY/Numerical_Methods_6_semester/blob/lab1/otchyot_3_kurs_62_gruppa_1_podgruppa_PakhomovaPV-1.pdf)
+[посмотреть полный отчёт](https://github.com/NIOHOMY/Numerical_Methods_6_semester/blob/master/otchyot_3_kurs_62_gruppa_1_podgruppa_PakhomovaPV-1.pdf)
 
 <h1>
 Постановка задачи  
